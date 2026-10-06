@@ -1,0 +1,17 @@
+# Terraform local state and plugins
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.tfplan.*
+.terraform.lock.hcl
+
+# Build artifacts
+lambda.zip
+src/__pycache__/
+*.pyc
+
+# OS & IDE files
+.DS_Store
+.vscode/
+.idea/
