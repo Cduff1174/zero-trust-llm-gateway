@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zero-Trust LLM Gateway | System Architecture</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #111827;
+      --border: #1f2937;
+      --text-main: #f9fafb;
+      --text-muted: #9ca3af;
+      --accent-blue: #38bdf8;
+      --accent-green: #34d399;
+      --accent-red: #f43f5e;
+      --accent-orange: #fb923c;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: 'Inter', -apple-system, sans-serif;
+      padding: 32px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1100px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    header {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .badge {
+      align-self: flex-start;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent-blue);
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 4px 10px;
+      border-radius: 9999px;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    /* Diagram Container */
+    .diagram-wrapper {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5);
+      overflow-x: auto;
+    }
+
+    .diagram-wrapper img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 8px;
+    }
+
+    /* Interactive Simulation Console */
+    .console-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .console-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 14px;
+      border-radius: 6px;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+    }
+
+    .btn-primary {
+      background: #0284c7;
+      color: #fff;
+    }
+    .btn-primary:hover { background: #0369a1; }
+
+    .btn-secondary {
+      background: #1f2937;
+      color: #e5e7eb;
+      border-color: #374151;
+    }
+    .btn-secondary:hover { background: #374151; }
+
+    pre {
+      background: #030712;
+      border: 1px solid #1f2937;
+      border-radius: 8px;
+      padding: 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      color: #e5e7eb;
+      overflow-x: auto;
+      line-height: 1.6;
+    }
+
+    .key { color: #38bdf8; }
+    .string { color: #34d399; }
+    .number { color: #fb923c; }
+    .redacted { background: rgba(244, 63, 94, 0.2); color: #f43f5e; padding: 2px 4px; border-radius: 4px; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <span class="badge">AWS Serverless • Terraform • Bedrock</span>
+      <h1>Zero-Trust LLM Gateway & FinOps DLP Proxy</h1>
+      <p class="subtitle">
+        Perimeter ingress control, in-memory PII sanitization, atomic DynamoDB token limits with 24h TTL, and KMS-encrypted CloudWatch audit trails.
+      </p>
+    </header>
+
+    <!-- Embedded High-Resolution Architecture -->
+    <div class="diagram-wrapper">
+      <img src="architecture.svg" alt="Zero-Trust LLM Architecture Diagram">
+    </div>
+
+    <!-- Live Execution Simulator -->
+    <div class="console-card">
+      <div class="console-header">
+        <div>
+          <h2 style="font-size: 16px; font-weight: 700;">Live Payload Simulator</h2>
+          <p style="font-size: 13px; color: var(--text-muted);">Toggle real-world traffic to observe gateway and DLP responses.</p>
+        </div>
+        <div class="btn-group">
+          <button class="btn-primary" onclick="showSanitized()">Simulate Safe Ingestion (DLP Active)</button>
+          <button class="btn-secondary" onclick="showBlocked()">Simulate Missing Key (403 Block)</button>
+        </div>
+      </div>
+
+      <pre id="output-box"></pre>
+    </div>
+  </div>
+
+  <script>
+    const sanitizedOutput = `{
+  <span class="key">"status"</span>: <span class="number">200</span>,
+  <span class="key">"tokens_consumed_estimate"</span>: <span class="number">15</span>,
+  <span class="key">"pii_redacted"</span>: [
+    <span class="string">"CREDIT_CARD"</span>,
+    <span class="string">"EMAIL"</span>
+  ],
+  <span class="key">"sanitized_prompt_forwarded"</span>: <span class="string">"Card: <span class="redacted">[REDACTED_CREDIT_CARD]</span>, email: <span class="redacted">[REDACTED_EMAIL]</span>. Confirm."</span>,
+  <span class="key">"bedrock_model"</span>: <span class="string">"us.amazon.nova-micro-v1:0"</span>,
+  <span class="key">"response"</span>: <span class="string">"Sorry, but I can't help with that. It's very important to keep personal and financial information private..."</span>
+}`;
+
+    const blockedOutput = `HTTP/2 <span class="number" style="color: #f43f5e;">403 Forbidden</span>
+date: Tue, 06 Oct 2026 12:24:23 GMT
+x-amzn-errortype: ForbiddenException
+x-amz-apigw-id: E0lCvEPcIAMERig=
+
+{
+  <span class="key">"message"</span>: <span class="string">"Forbidden"</span>
+}`;
+
+    function showSanitized() {
+      document.getElementById('output-box').innerHTML = sanitizedOutput;
+    }
+
+    function showBlocked() {
+      document.getElementById('output-box').innerHTML = blockedOutput;
+    }
+
+    // Default view
+    showSanitized();
+  </script>
+</body>
+</html>
